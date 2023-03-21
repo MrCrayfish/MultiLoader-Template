@@ -14,7 +14,14 @@ pluginManagement {
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
     }
+    resolutionStrategy {
+        eachPlugin {
+            if (it.requested.id.toString() == 'org.spongepowered.mixin') {
+                it.useModule('org.spongepowered:mixingradle:0.7.+')
+            }
+        }
+    }
 }
 
-rootProject.name = 'MultiLoader'
+rootProject.name = 'Template'
 include("Common", "Fabric", "Forge")

@@ -1,7 +1,7 @@
 package com.example.examplemod.platform.services;
 
-public interface IPlatformHelper {
-
+public interface IPlatformHelper
+{
     /**
      * Gets the name of the current platform
      *
@@ -29,8 +29,8 @@ public interface IPlatformHelper {
      *
      * @return The name of the environment type.
      */
-    default String getEnvironmentName() {
-
+    default String getEnvironmentName()
+    {
         return isDevelopmentEnvironment() ? "development" : "production";
     }
 }

@@ -4,7 +4,16 @@ plugins {
     id 'idea'
 }
 
-archivesBaseName = "${mod_name}-fabric-${minecraft_version}"
+archivesBaseName = "${mod_id}-fabric-${minecraft_version}"
+
+sourceSets {
+    testMod {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += test.compileClasspath
+        runtimeClasspath += test.runtimeClasspath
+    }
+}
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -13,15 +22,25 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     implementation project(":Common")
+    testModImplementation sourceSets.main.output
+    testModImplementation sourceSets.test.output
 }
 
 loom {
+    //accessWidenerPath = file("src/main/resources/example.accesswidener")
     runs {
         client {
             client()
             setConfigName("Fabric Client")
             ideConfigGenerated(true)
             runDir("run")
+        }
+        testModClient {
+            client()
+            setConfigName("Fabric Test Client")
+            ideConfigGenerated(true)
+            runDir("run")
+            setSource(sourceSets.testMod)
         }
         server {
             server()
@@ -32,13 +51,12 @@ loom {
     }
 }
 
-
 processResources {
     from project(":Common").sourceSets.main.resources
     inputs.property "version", project.version
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version
+        expand project.properties
     }
 }
 
@@ -49,16 +67,28 @@ tasks.withType(JavaCompile) {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            artifact remapJar
+            artifact sourcesJar
+            artifact javadocJar
             groupId project.group
             artifactId project.archivesBaseName
             version project.version
-            from components.java
         }
     }
 
     repositories {
         maven {
-            url "file://" + System.getenv("local_maven")
+            url "file://" + System.getenv("LOCAL_MAVEN")
+        }
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/MrCrayfish/Maven"
+            credentials {
+                username = rootProject.githubCredentials['GITHUB_USERNAME']
+                password = rootProject.githubCredentials['GITHUB_TOKEN']
+            }
         }
     }
 }
+
+loom.disableDeprecatedPomGeneration(publishing.publications.mavenJava)
