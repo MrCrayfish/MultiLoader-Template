@@ -10,8 +10,8 @@ archivesBaseName = "${mod_id}-forge"
 version = "${minecraft_version}-${mod_version}"
 
 mixin {
-    add sourceSets.main, "modid.refmap.json"
-    config "modid.refmap.json"
+    add sourceSets.main, "${mod_id}.mixins.json"
+    config "${mod_id}.mixins.json"
 }
 
 minecraft {

@@ -20,7 +20,7 @@
         "client": []
     },
     "mixins": [
-        "modid.mixins.json"
+        "${mod_id}.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",

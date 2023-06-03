@@ -60,6 +60,9 @@ subprojects {
                 username = githubCredentials['GITHUB_USERNAME']
                 password = githubCredentials['GITHUB_TOKEN']
             }
+            content {
+                includeGroup "com.mrcrayfish"
+            }
         }
     }
 
