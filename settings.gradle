@@ -24,4 +24,4 @@ pluginManagement {
 }
 
 rootProject.name = 'Template'
-include("Common", "Fabric", "Forge")
+include("common", "fabric", "forge")
