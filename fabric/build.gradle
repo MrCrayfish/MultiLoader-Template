@@ -1,7 +1,8 @@
 plugins {
-    id 'fabric-loom' version '1.0-SNAPSHOT'
-    id 'maven-publish'
+    id 'java'
     id 'idea'
+    id 'maven-publish'
+    id 'fabric-loom'
 }
 
 archivesBaseName = "${mod_id}-fabric"
@@ -27,15 +28,17 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
     modImplementation "com.mrcrayfish:framework-fabric:${minecraft_version}-${framework_version}"
     implementation "com.google.code.findbugs:jsr305:3.0.2"
-    implementation project(":Common")
+    implementation project(":common")
     testModImplementation sourceSets.main.output
     testModImplementation sourceSets.test.output
 }
 
 loom {
-    //accessWidenerPath = file("src/main/resources/example.accesswidener")
+    if (project(":common").file("src/main/resources/${mod_id}.accesswidener").exists()) {
+        accessWidenerPath.set(project(":common").file("src/main/resources/${mod_id}.accesswidener"))
+    }
     mixin {
-        defaultRefmapName = "${mod_id}-refmap.json"
+        defaultRefmapName.set("${mod_id}.refmap.json")
     }
     runs {
         client {
@@ -58,17 +61,18 @@ loom {
     }
 }
 
-processResources {
-    from project(":Common").sourceSets.main.resources
-    inputs.property "version", project.version
-
-    filesMatching(["fabric.mod.json", "pack.mcmeta"]) {
-        expand project.properties
-    }
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+}
+tasks.withType(Javadoc).configureEach {
+    source(project(":common").sourceSets.main.allJava)
+}
+tasks.named("sourcesJar", Jar) {
+    from(project(":common").sourceSets.main.allSource)
 }
 
-tasks.withType(JavaCompile) {
-    source(project(":Common").sourceSets.main.allSource)
+processResources {
+    from project(":common").sourceSets.main.resources
 }
 
 publishing {

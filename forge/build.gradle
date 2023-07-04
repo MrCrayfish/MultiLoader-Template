@@ -1,8 +1,7 @@
 plugins {
-    id 'java'
-    id 'eclipse'
+    id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.minecraftforge.gradle'
     id 'org.spongepowered.mixin'
 }
 
@@ -10,8 +9,8 @@ archivesBaseName = "${mod_id}-forge"
 version = "${minecraft_version}-${mod_version}"
 
 mixin {
-    add sourceSets.main, "${mod_id}-refmap.json"
-    config "${mod_id}.forge.mixins.json"
+    add(sourceSets.main, "${mod_id}.refmap.json")
+    config("${mod_id}.forge.mixins.json")
     if(file("${mod_id}.common.mixins.json").exists()) {
         config "${mod_id}.common.mixins.json"
     }
@@ -20,11 +19,8 @@ mixin {
 minecraft {
     mappings channel: 'official', version: minecraft_version
 
-    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-        // This location is hardcoded in Forge and can not be changed.
-        // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
+    if (file('src/main/resources/META-INF/accesstransformer.cfg').exists()) {
         accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-        project.logger.debug('Forge Access Transformers are enabled for this project.')
     }
 
     runs {
@@ -39,7 +35,7 @@ minecraft {
                 modClientRun {
                     source sourceSets.main
                     source sourceSets.test
-                    source project(":Common").sourceSets.main
+                    source project(":common").sourceSets.main
                 }
             }
         }
@@ -55,7 +51,7 @@ minecraft {
                 modServerRun {
                     source sourceSets.main
                     source sourceSets.test
-                    source project(":Common").sourceSets.main
+                    source project(":common").sourceSets.main
                 }
             }
         }
@@ -70,7 +66,7 @@ minecraft {
             mods {
                 modDataRun {
                     source sourceSets.main
-                    source project(":Common").sourceSets.main
+                    source project(":common").sourceSets.main
                 }
             }
         }
@@ -86,22 +82,23 @@ configurations {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf("com.mrcrayfish:framework-forge:${minecraft_version}-${framework_version}")
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    compileOnly project(":Common")
-    testCompileOnly project(":Common")
+    compileOnly project(":common")
+    testCompileOnly project(":common")
+    annotationProcessor("org.spongepowered:mixin:0.8.5-SNAPSHOT:processor")
 }
 
-tasks.withType(JavaCompile) {
-    source(project(":Common").sourceSets.main.allSource)
+tasks.withType(JavaCompile).configureEach {
+    source(project(":common").sourceSets.main.allSource)
+}
+tasks.withType(Javadoc).configureEach {
+    source(project(":common").sourceSets.main.allJava)
+}
+tasks.named("sourcesJar", Jar) {
+    from(project(":common").sourceSets.main.allSource)
 }
 
 processResources {
-    from project(":Common").sourceSets.main.resources
-    inputs.property "version", project.version
-
-    filesMatching(["META-INF/mods.toml", "pack.mcmeta"]) {
-        expand project.properties
-    }
+    from project(":common").sourceSets.main.resources
 }
 
 jar.finalizedBy('reobfJar')

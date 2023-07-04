@@ -7,15 +7,12 @@
     "mixins": [
     ],
     "client": [
-<<<<<<<< HEAD:common/src/main/resources/example.common.mixins.json
-========
-        "MixinTitleScreen"
+        "MixinMinecraft"
     ],
     "server": [
->>>>>>>> upstream/1.20:fabric/src/main/resources/examplemod.fabric.mixins.json
     ],
     "injectors": {
         "defaultRequire": 1
     }
-  }
-  
+}
+
