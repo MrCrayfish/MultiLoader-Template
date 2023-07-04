@@ -20,13 +20,15 @@
         "client": []
     },
     "mixins": [
-        "${mod_id}.mixins.json"
+        "${mod_id}.fabric.mixins.json",
+        "${mod_id}.common.mixins.json"
     ],
     "depends": {
         "fabricloader": ">=${fabric_loader_version}",
         "fabric": "*",
         "minecraft": "${minecraft_version}",
-        "java": ">=17"
+        "java": ">=17",
+        "framework": ">=${framework_version}"
     },
     "custom": {
         "configured": {

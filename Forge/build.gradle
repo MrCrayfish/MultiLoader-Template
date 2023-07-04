@@ -10,8 +10,11 @@ archivesBaseName = "${mod_id}-forge"
 version = "${minecraft_version}-${mod_version}"
 
 mixin {
-    add sourceSets.main, "${mod_id}.mixins.json"
-    config "${mod_id}.mixins.json"
+    add sourceSets.main, "${mod_id}-refmap.json"
+    config "${mod_id}.forge.mixins.json"
+    if(file("${mod_id}.common.mixins.json").exists()) {
+        config "${mod_id}.common.mixins.json"
+    }
 }
 
 minecraft {
@@ -96,7 +99,7 @@ processResources {
     from project(":Common").sourceSets.main.resources
     inputs.property "version", project.version
 
-    filesMatching("META-INF/mods.toml") {
+    filesMatching(["META-INF/mods.toml", "pack.mcmeta"]) {
         expand project.properties
     }
 }
@@ -127,16 +130,41 @@ publishing {
         }
     }
     repositories {
-        maven {
-            url "file://" + System.getenv("LOCAL_MAVEN")
-        }
-        maven {
-            name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/MrCrayfish/Maven"
-            credentials {
-                username = rootProject.githubCredentials['GITHUB_USERNAME']
-                password = rootProject.githubCredentials['GITHUB_TOKEN']
+        if (System.getenv("CI")) {
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/MrCrayfish/Maven"
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("GPR_USER")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GPR_KEY")
+                }
+            }
+        } else {
+            maven {
+                url "file://" + System.getenv("LOCAL_MAVEN")
             }
         }
     }
 }
+
+signing {
+    if (System.getenv("SIGNING_KEY")) {
+        def signingKey = System.getenv("SIGNING_KEY")
+        def signingPassword = System.getenv("SIGNING_PASSPHRASE")
+        useInMemoryPgpKeys(signingKey, signingPassword)
+    }
+    sign publishing.publications.mavenJava
+}
+
+task signJar(type: net.minecraftforge.gradle.common.tasks.SignJar, dependsOn: jar) {
+    onlyIf {
+        hasProperty('keyStore') || System.getenv("KEYSTORE")
+    }
+    keyStore = findProperty('keyStore') ?: System.getenv("KEYSTORE")
+    alias = findProperty('keyStoreAlias') ?: System.getenv("KEYSTORE_ALIAS")
+    storePass = findProperty('keyStorePass') ?: System.getenv("KEYSTORE_PASS")
+    inputFile = outputFile = jar.archiveFile
+}
+
+jar.finalizedBy 'signJar'
+signJar.mustRunAfter 'reobfJar'
